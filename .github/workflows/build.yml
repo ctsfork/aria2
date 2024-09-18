@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-10.11]
+        os: [ubuntu-latest, macos-14]
         # arch: [amd64, arm64]
         arch: [amd64, arm64, ppc64le, s390x, 386, arm]
     steps:
@@ -34,45 +34,21 @@ jobs:
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        if: ${{ runner.os == 'macOS' && matrix.arch == 'amd64' }}
+        if: ${{ runner.os == 'macOS' }}
         run: |
-          brew install cppunit gettext openssl libssh2 c-ares sqlite3 \
-          autoconf automake pkg-config libtool libuv libxml2 zlib upx libuv
-          (cd ..;
-          curl -L https://c-ares.haxx.se/download/c-ares-1.17.2.tar.gz -o c-ares.tar.gz;
-          tar xf c-ares.tar.gz;
-          cd c-ares-*;
-          ./configure --disable-shared;
-          make -j`sysctl -n machdep.cpu.thread_count`;
-          make install -j`sysctl -n machdep.cpu.thread_count`;)
+          brew install cppunit autoconf automake pkg-config libtool
           git checkout build
-          autoreconf -i;
-          export LDFLAGS="-L/usr/local/opt/libxml2/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl@1.1/lib -L/usr/local/opt/sqlite3/lib -L/usr/local/lib -L/usr/local/opt/libuv/lib";
-          export CPPFLAGS="-I/usr/local/opt/libxml2/include -I/usr/local/opt/zlib/include -I/usr/local/opt/openssl@1.1/include -I/usr/local/opt/sqlite3/include -I/usr/local/include -I/usr/local/opt/libuv/include";
-          export PKG_CONFIG_PATH="/usr/local/opt/sqlite3/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/opt/zlib/lib/pkgconfig:/usr/local/opt/openssl@1.1/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/opt/libuv/lib/pkgconfig";
-          export CC=clang
-          export CXX=clang++
-          sudo rm -fr /usr/local/opt/libxml2/lib/*.dylib /usr/local/opt/libssh2/lib/*.dylib /usr/local/opt/openssl@1.1/lib/*.dylib /usr/local/opt/openssl@1.1/lib/*.dylib \
-          /usr/local/opt/c-ares/lib/*.dylib /usr/local/opt/gettext/lib/*.dylib /usr/local/opt/sqlite/lib/*.dylib /usr/local/opt/zlib/lib/*.dylib /usr/local/opt/libuv/lib/*.dylib || true;
-          ./configure \
-          --prefix=/usr/local \
-          --without-appletls \
-          --without-gnutls \
-          --with-openssl \
-          --with-libuv \
-          --with-libssh2 \
-          --with-sqlite3 \
-          --with-ca-bundle='/usr/local/etc/openssl/cert.pem' \
-          ARIA2_STATIC=yes \
-          --enable-shared=no
-          make -j`sysctl -n machdep.cpu.thread_count`
-          strip src/aria2c
-          upx src/aria2c
+          cd /Users/runner/work/aria2
+          mkdir build
+          cd build
+          ln -s ../aria2/makerelease-osx-static.mk ./Makefile
+          make ARCH=arm64 V=s
+          strip /Users/runner/work/aria2s/build/aria2-def/aria2c
           mkdir ./artifact/
-          mv src/aria2c ./aria2c
+          mv /Users/runner/work/aria2s/build/aria2-def/aria2c ./aria2c
           tar cf ./artifact/aria2c-macos-amd64.tar aria2c
       - name: upload macOS aria2c
-        if: ${{ runner.os == 'macOS' && matrix.arch == 'amd64' }}
+        if: ${{ runner.os == 'macOS'}}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -93,6 +69,11 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: aria2c-macos-amd64
+          path: ./artifact
+      - name: Retrieve aria2c-macos-arm64
+        uses: actions/download-artifact@master
+        with:
+          name: aria2c-macos-arm64
           path: ./artifact
       - name: Retrieve aria2c-linux-amd64
         uses: actions/download-artifact@master

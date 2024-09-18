@@ -7,7 +7,7 @@
 #  - Build static libraries of aria2 dependencies.
 #  - Create a statically linked, aria2 release.
 #    - The build will have all major features enabled, and will use
-#      AppleTLS and GMP.
+#      OpenSSL and GMP.
 #  - Create a corresponding .tar.bz containing the binaries:
 #  - Create a corresponding .pkg installer.
 #  - Create a corresponding .dmg image containing said installer.
@@ -16,6 +16,8 @@
 #
 # The dependencies currently build are:
 #  - zlib (compression, in particular web compression)
+#  - openssl
+#  - libuv
 #  - c-ares (asynchronous DNS resolver)
 #  - expat (XML parser, for metalinks)
 #  - gmp (multi-precision arithmetric library, for DHKeyExchange, BitTorrent)
@@ -76,13 +78,13 @@ VERSION := $(BASE_VERSION)
 
 # Set up compiler.
 ARCH = x86_64
-CC = cc
+CC = clang
 export CC
-CXX = c++ -stdlib=libc++
+CXX = clang++
 export CXX
 
 # Set up compiler/linker flags.
-PLATFORMFLAGS ?= -mmacosx-version-min=10.10
+PLATFORMFLAGS ?= -mmacosx-version-min=10.12
 OPTFLAGS ?= -Os
 CFLAGS ?= $(PLATFORMFLAGS) $(OPTFLAGS)
 export CFLAGS
@@ -96,19 +98,17 @@ LTO_FLAGS = -flto -ffunction-sections -fdata-sections
 # Dependency versions
 zlib_version = 1.3.1
 zlib_hash = 38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32
-zlib_url = http://zlib.net/fossils/zlib-$(zlib_version).tar.xz
+zlib_url = https://zlib.net/zlib-$(zlib_version).tar.xz
+
+openssl_version = 3.3.2
+openssl_hash = 2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281
+openssl_url = https://github.com/openssl/openssl/releases/download/openssl-$(openssl_version)/openssl-$(openssl_version).tar.gz
 
 expat_version = 2.6.3
 expat_hash = 274db254a6979bde5aad404763a704956940e465843f2a9bd9ed7af22e2c0efc
 expat_url = https://github.com/libexpat/libexpat/releases/download/R_2_6_3/expat-2.6.3.tar.xz
 expat_cflags=$(CFLAGS) $(LTO_FLAGS)
 expat_ldflags=$(CFLAGS) $(LTO_FLAGS)
-
-openssl_version = 3.3.2
-openssl_hash = 2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281
-openssl_url = https://github.com/openssl/openssl/releases/download/openssl-$(cares_version)/openssl-$(cares_version).tar.gz
-openssl_cflags=$(CFLAGS) $(LTO_FLAGS)
-openssl_ldflags=$(CFLAGS) $(LTO_FLAGS)
 
 cares_version = 1.33.1
 cares_hash = 06869824094745872fa26efd4c48e622b9bd82a89ef0ce693dc682a23604f415
@@ -118,10 +118,10 @@ cares_cflags=$(CFLAGS) $(LTO_FLAGS)
 cares_ldflags=$(CFLAGS) $(LTO_FLAGS)
 
 sqlite_version = autoconf-3460100
-sqlite_hash = e0a8cf4c7a87455e55e10413d16f358ca121ccec687fe1301eac95e2d340fc58
+sqlite_hash = 67d3fe6d268e6eaddcae3727fce58fcc8e9c53869bdd07a0c61e38ddf2965071
 sqlite_url = https://sqlite.org/2024/sqlite-$(sqlite_version).tar.gz
 sqlite_cflags=$(CFLAGS) $(LTO_FLAGS)
-sqlite_ldflags=$(CFLAGS) $(LTO_FLAGS)
+sqlite_ldflags=$(CFLAGS) $(LTO_FLAGS) -framework Security -framework Foundation
 
 gmp_version = 6.3.0
 gmp_hash = ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
@@ -130,19 +130,10 @@ gmp_confflags = --disable-cxx --enable-assembly --with-pic --enable-fat
 gmp_cflags=$(CFLAGS)
 gmp_cxxflags=$(CXXFLAGS)
 
-libgpgerror_version = 1.50
-libgpgerror_hash = 69405349e0a633e444a28c5b35ce8f14484684518a508dc48a089992fe93e20a
-libgpgerror_url = https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-$(libgpgerror_version).tar.bz2
-libgpgerror_cflags=$(CFLAGS) $(LTO_FLAGS)
-libgpgerror_ldflags=$(CFLAGS) $(LTO_FLAGS)
-libgpgerror_confflags = --with-pic --disable-languages --disable-doc --disable-nls
-
-libgcrypt_version = 1.11.0
-libgcrypt_hash = 09120c9867ce7f2081d6aaa1775386b98c2f2f246135761aae47d81f58685b9c
-libgcrypt_url = https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-$(libgcrypt_version).tar.bz2
-libgcrypt_confflags=--with-gpg-error-prefix=$(PWD)/arch --disable-O-flag-munging --disable-asm --disable-amd64-as-feature-detection
-libgcrypt_cflags=$(PLATFORMFLAGS)
-libgcrypt_cxxflags=$(PLATFORMFLAGS)
+libuv_version = v1.48.0
+libuv_hash = 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
+libuv_url = https://dist.libuv.org/dist/$(libuv_version)/libuv-$(libuv_version).tar.gz
+libuv_confflags = --disable-silent-rules
 
 libssh2_version = 1.11.0
 libssh2_hash = a488a22625296342ddae862de1d59633e6d446eff8417398e06674a49be3d7c2
@@ -150,39 +141,31 @@ libssh2_url = https://www.libssh2.org/download/libssh2-$(libssh2_version).tar.xz
 libssh2_cflags=$(CFLAGS) $(LTO_FLAGS)
 libssh2_cxxflags=$(CXXFLAGS) $(LTO_FLAGS)
 libssh2_ldflags=$(CFLAGS) $(LTO_FLAGS)
-libssh2_confflags = --with-pic --without-openssl --with-libgcrypt=$(PWD)/arch --with-libgcrypt-prefix=$(PWD)/arch
+libssh2_confflags = --with-pic
 libssh2_nocheck = yes
 
 
 # ARCHLIBS that can be template build
-ARCHLIBS = openssl expat cares sqlite gmp libgpgerror libgcrypt libssh2
+ARCHLIBS = expat cares sqlite gmp libssh2
 # NONARCHLIBS that cannot be template build
-NONARCHLIBS = zlib
+NONARCHLIBS = libuv zlib openssl
 
 
 # Aria2 setup
 ARIA2 := aria2-$(VERSION)
 ARIA2_PREFIX := $(PWD)/$(ARIA2)
 ARIA2_CONFFLAGS = \
-        --enable-static \
-        --disable-shared \
-        --disable-metalink \
-        --enable-bittorrent \
-        --disable-nls \
-        --without-openssl \
-        --with-libgmp=$(PWD)/arch \
-        --with-sqlite3=$(PWD)/arch \
-        --with-libz=$(PWD)/arch \
-        --with-libexpat=$(PWD)/arch \
-        --with-libcares=$(PWD)/arch \
-        --with-libgcrypt=$(PWD)/arch \
-        --with-libssh2=$(PWD)/arch \
-        --without-libuv \
-        --without-gnutls \
-        --without-appletls \
-        --without-libnettle \
-        --without-libxml2 \
-        ARIA2_STATIC=yes
+		--without-libxml2 \
+		--without-appletls \
+		--without-gnutls \
+		--with-openssl \
+		--with-libuv \
+		--with-libssh2 \
+		--with-sqlite3 \
+		--with-ca-bundle='/usr/local/etc/openssl/cert.pem' \
+		--disable-libaria2 \
+		ARIA2_STATIC=yes \
+		--enable-shared=no
 
 # Detect number of CPUs to be used with make -j
 CPUS = $(shell sysctl hw.ncpu | cut -d" " -f2)
@@ -206,22 +189,8 @@ all::
 	fi;
 	touch $@
 
-.PRECIOUS: %.tar.xz
-%.tar.gz:
-	curl -o $@ -A 'curl/0; like wget' -L \
-		$($(basename $(basename $@))_url)
-
-.PRECIOUS: %.xzcheck
-%.check: %.tar.xz
-	@if test "$$(shasum -a256 $< | awk '{print $$1}')" != "$($(basename $@)_hash)"; then \
-		echo "Invalid $@ hash"; \
-		rm -f $<; \
-		exit 1; \
-	fi;
-	touch $@
-
 .PRECIOUS: %.stamp
-%.stamp: %.tar.gz %.check %.tar.xz %.xzcheck
+%.stamp: %.tar.gz %.check
 	tar xf $<
 	mv $(basename $@)-$($(basename $@)_version) $(basename $@)
 	touch $@
@@ -230,12 +199,6 @@ all::
 cares.stamp: cares.tar.gz cares.check
 	tar xf $<
 	mv c-ares-$($(basename $@)_version) $(basename $@)
-	touch $@
-
-.PRECIOUS: libgpgerror.stamp
-libgpgerror.stamp: libgpgerror.tar.gz libgpgerror.check
-	tar xf $<
-	mv libgpg-error-$($(basename $@)_version) $(basename $@)
 	touch $@
 
 # Using (NON)ARCH_template kinda stinks, but real multi-target pattern rules
@@ -258,6 +221,32 @@ zlib.%.build: zlib.stamp
 		)
 	$(MAKE) -C $(DEST) -sj$(CPUS) CFLAGS="$(CFLAGS) $(LTO_FLAGS) -arch $(ARCH)"
 	$(MAKE) -C $(DEST) -sj$(CPUS) CFLAGS="$(CFLAGS) $(LTO_FLAGS) -arch $(ARCH)" check
+	$(MAKE) -C $(DEST) -s install
+	touch $@
+
+.PRECIOUS: openssl.%.build
+openssl.%.build: openssl.stamp
+	$(eval BASE := $(basename $<))
+	$(eval DEST := $(basename $@))
+	$(eval ARCH := $(subst .,,$(suffix $(DEST))))
+	rsync -a $(BASE)/ $(DEST)
+	( cd $(DEST) && ./config \
+		--static zlib --prefix=$(PWD)/arch no-weak-ssl-ciphers -Wa,--noexecstack\
+		)
+	$(MAKE) -C $(DEST) -sj$(CPUS) CFLAGS="$(CFLAGS) $(LTO_FLAGS) -arch $(ARCH)"
+	$(MAKE) -C $(DEST) -s install
+	touch $@
+
+.PRECIOUS: libuv.%.build
+libuv.%.build: libuv.stamp
+	$(eval BASE := $(basename $<))
+	$(eval DEST := $(basename $@))
+	$(eval ARCH := $(subst .,,$(suffix $(DEST))))
+	rsync -a $(BASE)/ $(DEST)
+	( cd $(DEST) && ./autogen.sh && ./configure \
+		--enable-static --disable-shared --prefix=$(PWD)/arch \
+		)
+	$(MAKE) -C $(DEST) -sj$(CPUS) CFLAGS="$(CFLAGS) $(LTO_FLAGS) -arch $(ARCH)"
 	$(MAKE) -C $(DEST) -s install
 	touch $@
 
@@ -292,14 +281,16 @@ endef
 $(foreach lib,$(ARCHLIBS),$(eval $(call ARCH_template,$(lib))))
 
 .PRECIOUS: aria2.%.build
-aria2.%.build: openssl.%.build zlib.%.build expat.%.build gmp.%.build cares.%.build sqlite.%.build libgpgerror.%.build libgcrypt.%.build libssh2.%.build
+aria2.%.build: libuv.%.build zlib.%.build openssl.%.build expat.%.build gmp.%.build cares.%.build sqlite.%.build libssh2.%.build
 	$(eval DEST := $$(basename $$@))
 	$(eval ARCH := $$(subst .,,$$(suffix $$(DEST))))
 	mkdir -p $(DEST)
-	( cd $(DEST) && ../$(SRCDIR)/configure \
+	rsync -a $(SRCDIR)/../aria2/ $(DEST)
+#	find $(PWD)/arch/lib -name "*.dylib" -delete
+	( cd $(DEST) && autoreconf -i && ./configure \
 		--prefix=$(ARIA2_PREFIX) \
 		--bindir=$(PWD)/$(DEST) \
-		--sysconfdir=/etc \
+		--sysconfdir=/usr/local/etc \
 		$(ARIA2_CONFFLAGS) \
 		CFLAGS="$(CFLAGS) $(LTO_FLAGS) -arch $(ARCH) -I$(PWD)/arch/include" \
 		CXXFLAGS="$(CXXFLAGS) $(LTO_FLAGS) -arch $(ARCH) -I$(PWD)/arch/include" \
