@@ -1,6 +1,7 @@
 name: Build Binary
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - build
@@ -13,9 +14,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-14]
+        os: [macos-14, macos-13]
         # arch: [amd64, arm64]
-        arch: [amd64, arm64, ppc64le, s390x, 386, arm]
+        arch: [amd64, arm64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
@@ -34,21 +35,18 @@ jobs:
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        if: ${{ runner.os == 'macOS' }}
+        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         run: |
-          brew install cppunit autoconf automake pkg-config libtool
+          brew install autoconf automake pkg-config libtool;
+          # brew unlink gettext || true
           git checkout build
-          cd /Users/runner/work/aria2
-          mkdir build
-          cd build
-          ln -s ../aria2/makerelease-osx-static.mk ./Makefile
-          make ARCH=arm64 V=s
-          strip /Users/runner/work/aria2s/build/aria2-def/aria2c
+          (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.arch == 'amd64' && 'x86_64' || matrix.arch }} V=s)
+          strip /Users/runner/work/aria2/build/aria2-def/bin/aria2c
           mkdir ./artifact/
-          mv /Users/runner/work/aria2s/build/aria2-def/aria2c ./aria2c
-          tar cf ./artifact/aria2c-macos-amd64.tar aria2c
+          mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
+          tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
-        if: ${{ runner.os == 'macOS'}}
+        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -59,6 +57,12 @@ jobs:
         with:
           name: aria2c-linux-${{ matrix.arch }}
           path: ./artifact/
+      - name: SSH 连接到 Actions
+        uses: tofuliang/ssh2actions@main
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -75,36 +79,36 @@ jobs:
         with:
           name: aria2c-macos-arm64
           path: ./artifact
-      - name: Retrieve aria2c-linux-amd64
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-amd64
-          path: ./artifact
-      - name: Retrieve aria2c-linux-arm64
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-arm64
-          path: ./artifact
-      - name: Retrieve aria2c-linux-ppc64le
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-ppc64le
-          path: ./artifact
-      - name: Retrieve aria2c-linux-s390x
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-s390x
-          path: ./artifact
-      - name: Retrieve aria2c-linux-386
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-386
-          path: ./artifact
-      - name: Retrieve aria2c-linux-arm
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-linux-arm
-          path: ./artifact
+      # - name: Retrieve aria2c-linux-amd64
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-amd64
+      #     path: ./artifact
+      # - name: Retrieve aria2c-linux-arm64
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-arm64
+      #     path: ./artifact
+      # - name: Retrieve aria2c-linux-ppc64le
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-ppc64le
+      #     path: ./artifact
+      # - name: Retrieve aria2c-linux-s390x
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-s390x
+      #     path: ./artifact
+      # - name: Retrieve aria2c-linux-386
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-386
+      #     path: ./artifact
+      # - name: Retrieve aria2c-linux-arm
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: aria2c-linux-arm
+      #     path: ./artifact
       # - name: SSH 连接到 Actions
       #   uses: P3TERX/ssh2actions@main
       #   env:

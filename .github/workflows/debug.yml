@@ -2,7 +2,6 @@ name: DEBUG
 
 on:
   workflow_dispatch:
-    inputs:
 
 jobs:
   build:

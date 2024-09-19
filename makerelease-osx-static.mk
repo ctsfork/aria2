@@ -19,7 +19,7 @@
 #  - openssl
 #  - libuv
 #  - c-ares (asynchronous DNS resolver)
-#  - expat (XML parser, for metalinks)
+#  - libxml2 (XML parser, for metalinks)
 #  - gmp (multi-precision arithmetric library, for DHKeyExchange, BitTorrent)
 #  - sqlite3 (self-contained SQL database, for Firefox3 cookie reading)
 #  - cppunit (unit tests for C++, framework in use by aria2 `make check`)
@@ -100,15 +100,16 @@ zlib_version = 1.3.1
 zlib_hash = 38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32
 zlib_url = https://zlib.net/zlib-$(zlib_version).tar.xz
 
-openssl_version = 3.3.2
-openssl_hash = 2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281
-openssl_url = https://github.com/openssl/openssl/releases/download/openssl-$(openssl_version)/openssl-$(openssl_version).tar.gz
+openssl_version = 1.1.1w
+openssl_hash = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+openssl_url = https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz
 
-expat_version = 2.6.3
-expat_hash = 274db254a6979bde5aad404763a704956940e465843f2a9bd9ed7af22e2c0efc
-expat_url = https://github.com/libexpat/libexpat/releases/download/R_2_6_3/expat-2.6.3.tar.xz
-expat_cflags=$(CFLAGS) $(LTO_FLAGS)
-expat_ldflags=$(CFLAGS) $(LTO_FLAGS)
+libxml2_version = 2.13.4
+libxml2_hash = 65d042e1c8010243e617efb02afda20b85c2160acdbfbcb5b26b80cec6515650
+libxml2_url = https://download.gnome.org/sources/libxml2/2.13/libxml2-$(libxml2_version).tar.xz
+libxml2_cflags=$(CFLAGS) $(LTO_FLAGS)
+libxml2_ldflags=$(CFLAGS) $(LTO_FLAGS)
+libxml2_nocheck = yes
 
 cares_version = 1.33.1
 cares_hash = 06869824094745872fa26efd4c48e622b9bd82a89ef0ce693dc682a23604f415
@@ -146,7 +147,7 @@ libssh2_nocheck = yes
 
 
 # ARCHLIBS that can be template build
-ARCHLIBS = expat cares sqlite gmp libssh2
+ARCHLIBS = libxml2 cares sqlite gmp libssh2
 # NONARCHLIBS that cannot be template build
 NONARCHLIBS = libuv zlib openssl
 
@@ -155,7 +156,6 @@ NONARCHLIBS = libuv zlib openssl
 ARIA2 := aria2-$(VERSION)
 ARIA2_PREFIX := $(PWD)/$(ARIA2)
 ARIA2_CONFFLAGS = \
-		--without-libxml2 \
 		--without-appletls \
 		--without-gnutls \
 		--with-openssl \
@@ -281,12 +281,12 @@ endef
 $(foreach lib,$(ARCHLIBS),$(eval $(call ARCH_template,$(lib))))
 
 .PRECIOUS: aria2.%.build
-aria2.%.build: libuv.%.build zlib.%.build openssl.%.build expat.%.build gmp.%.build cares.%.build sqlite.%.build libssh2.%.build
+aria2.%.build: libuv.%.build zlib.%.build openssl.%.build libxml2.%.build gmp.%.build cares.%.build sqlite.%.build libssh2.%.build
 	$(eval DEST := $$(basename $$@))
 	$(eval ARCH := $$(subst .,,$$(suffix $$(DEST))))
 	mkdir -p $(DEST)
 	rsync -a $(SRCDIR)/../aria2/ $(DEST)
-#	find $(PWD)/arch/lib -name "*.dylib" -delete
+	find $(PWD)/arch/lib -name "*.dylib" -delete
 	( cd $(DEST) && autoreconf -i && ./configure \
 		--prefix=$(ARIA2_PREFIX) \
 		--bindir=$(PWD)/$(DEST) \
