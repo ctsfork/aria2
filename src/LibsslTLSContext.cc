@@ -124,11 +124,7 @@ namespace {
       }
 
 
-      if (SSL_CTX_load_verify_locations(
-              sslCtx,
-              caFiles[i],
-              nullptr) == 1) {
-
+      if (SSL_CTX_load_verify_locations(sslCtx, caFiles[i], nullptr) == 1) {
         return true;
       }
     }

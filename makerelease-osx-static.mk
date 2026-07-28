@@ -158,14 +158,37 @@ ARIA2_PREFIX := $(PWD)/$(ARIA2)
 ARIA2_CONFFLAGS = \
 		--without-appletls \
 		--without-gnutls \
+		--without-python \
 		--with-openssl \
 		--with-libuv \
 		--with-libssh2 \
 		--with-sqlite3 \
-		--with-ca-bundle='/usr/local/etc/openssl/cert.pem' \
 		--disable-libaria2 \
 		ARIA2_STATIC=yes \
 		--enable-shared=no
+
+
+
+## --without-python ：libxml2不使用Python就不会被本机 Miniconda 环境影响
+## --with-ca-bundle='/etc/ssl/cert.pem' ：指定证书路径，可以不用指定因为LibsslTLSContext.cc中有多个可选证书路径，根据路径查找
+## 原始的指定证书的方式
+# ARIA2_CONFFLAGS = \
+# 		--without-appletls \
+# 		--without-gnutls \
+# 		--with-openssl \
+# 		--with-libuv \
+# 		--with-libssh2 \
+# 		--with-sqlite3 \
+# 		--with-ca-bundle='/usr/local/etc/openssl/cert.pem' \
+# 		--disable-libaria2 \
+# 		ARIA2_STATIC=yes \
+# 		--enable-shared=no
+
+
+
+
+
+
 
 # Detect number of CPUs to be used with make -j
 CPUS = $(shell sysctl hw.ncpu | cut -d" " -f2)
