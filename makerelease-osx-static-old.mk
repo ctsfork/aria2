@@ -97,7 +97,7 @@ LTO_FLAGS = -flto -ffunction-sections -fdata-sections
 
 # Dependency versions
 zlib_version = 1.3.1
-zlib_hash = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
+zlib_hash = 38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32
 zlib_url = https://zlib.net/fossils/zlib-$(zlib_version).tar.gz
 
 openssl_version = 1.1.1w
