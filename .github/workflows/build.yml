@@ -14,9 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14, macos-13]
+        # os: [macos-14, macos-13]
+        os: [macos-14]
         # arch: [amd64, arm64]
-        arch: [amd64, arm64]
+         arch: [amd64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
@@ -46,7 +47,8 @@ jobs:
           mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
           tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
-        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -63,6 +65,9 @@ jobs:
       #   env:
       #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       #     TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+
+
   release:
     needs: build
     runs-on: ubuntu-latest
