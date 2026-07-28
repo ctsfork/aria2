@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    if: github.event.repository.owner.id == github.event.sender.id
+    # if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -36,7 +36,8 @@ jobs:
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
