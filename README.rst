@@ -3,6 +3,7 @@
 1. 修改证书加载逻辑：将默认的加载方式更改为先搜索给出路径中的证书证书路径，如果没有则使用默认证书配置。被修改的文件src/LibsslTLSContext.cc
 2. 修改makerelease-osx-static.mk文件：移除--with-ca-bundle参数：禁用指定证书路径，让程序自行查找证书。
 3. 修改makerelease-osx-static.mk文件：添加--without-python参数：libxml2不使用Python就不会被本机 Miniconda 环境影响
+4. 构建了OSX arm64 x86-x64，Linux arm64 x86-x64版本
 
 
 
