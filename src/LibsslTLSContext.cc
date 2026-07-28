@@ -53,14 +53,6 @@
 #include "BufferedFile.h"
 
 namespace {
-struct bio_deleter {
-  void operator()(BIO* b)
-  {
-    if (b)
-      BIO_free(b);
-  }
-
-
   // 新增加载证书文件的方法
   bool loadSystemTrustedCACerts(SSL_CTX* sslCtx)
   {
@@ -150,7 +142,17 @@ struct bio_deleter {
     return SSL_CTX_set_default_verify_paths(sslCtx) == 1;
   }
 
+
+
+struct bio_deleter {
+  void operator()(BIO* b)
+  {
+    if (b)
+      BIO_free(b);
+  }
+
 };
+
 typedef std::unique_ptr<BIO, bio_deleter> bio_t;
 struct p12_deleter {
   void operator()(PKCS12* p)
@@ -398,15 +400,15 @@ bool OpenSSLTLSContext::addTrustedCACertFile(const std::string& certfile)
   if (SSL_CTX_load_verify_locations(sslCtx_, certfile.c_str(), nullptr) != 1) {
     A2_LOG_ERROR(fmt(MSG_LOADING_TRUSTED_CA_CERT_FAILED, certfile.c_str(),
                      ERR_error_string(ERR_get_error(), nullptr)));
-
-
-    //新增log
-    A2_LOG_INFO(fmt("Using CA certificate file: %s",
-                caFiles[i]));
     return false;
   }
   else {
     A2_LOG_INFO("Trusted CA certificates were successfully added.");
+
+    //新增log
+    A2_LOG_INFO(fmt("Using CA certificate file: %s",
+                certfile.c_str()));
+
     return true;
   }
 }
