@@ -57,12 +57,12 @@ jobs:
         with:
           name: aria2c-linux-${{ matrix.arch }}
           path: ./artifact/
-      - name: SSH 连接到 Actions
-        uses: tofuliang/ssh2actions@main
-        if: ${{ failure() }}
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # - name: SSH 连接到 Actions
+      #   uses: tofuliang/ssh2actions@main
+      #   if: ${{ failure() }}
+      #   env:
+      #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      #     TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -119,6 +119,8 @@ jobs:
         with:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
           prerelease: false
-          automatic_release_tag: ${{ env.ReleaseVersion }}
-          title: ${{ env.ReleaseVersion }}
+          # automatic_release_tag: ${{ env.ReleaseVersion }}
+          # title: ${{ env.ReleaseVersion }}
+          automatic_release_tag: "v1.37.0"
+          title: "v1.37.0 osx版本构建"
           files: ./artifact/*
