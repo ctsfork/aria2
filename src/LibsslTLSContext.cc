@@ -37,6 +37,11 @@
 #include <cassert>
 #include <sstream>
 
+// 新增头文件
+#include <unistd.h>
+#include <cstdlib>
+
+
 #include <openssl/err.h>
 #include <openssl/pkcs12.h>
 #include <openssl/bio.h>
@@ -54,6 +59,97 @@ struct bio_deleter {
     if (b)
       BIO_free(b);
   }
+
+
+  // 新增加载证书文件的方法
+  bool loadSystemTrustedCACerts(SSL_CTX* sslCtx)
+  {
+    /*
+     * 1. 优先使用用户指定的证书
+     *
+     * 例如:
+     * export SSL_CERT_FILE=/path/to/cert.pem
+     */
+    const char* envCert = std::getenv("SSL_CERT_FILE");
+
+    if (envCert && access(envCert, R_OK) == 0) {
+
+      if (SSL_CTX_load_verify_locations(
+              sslCtx,
+              envCert,
+              nullptr) == 1) {
+
+        return true;
+      }
+    }
+
+
+    /*
+     * 2. 搜索系统 CA Bundle
+     *
+     * macOS:
+     *
+     * /etc/ssl/cert.pem
+     *
+     * Homebrew Intel:
+     *
+     * /usr/local/etc/openssl@3/cert.pem
+     *
+     * Homebrew ARM:
+     *
+     * /opt/homebrew/etc/openssl@3/cert.pem
+     *
+     */
+    const char* caFiles[] = {
+
+        // macOS 默认
+        "/etc/ssl/cert.pem",
+
+        // Homebrew Intel
+        "/usr/local/etc/ca-certificates/cert.pem",
+        "/usr/local/etc/openssl@3/cert.pem",
+        "/usr/local/etc/openssl/cert.pem",
+
+        // Homebrew ARM64
+        "/opt/homebrew/etc/ca-certificates/cert.pem",
+        "/opt/homebrew/etc/openssl@3/cert.pem",
+        "/opt/homebrew/etc/openssl/cert.pem",
+
+        // MacPorts
+        "/opt/local/etc/openssl/cert.pem",
+
+        //当前路径
+        "./cert.pem",
+
+        nullptr
+    };
+
+
+    for (int i = 0; caFiles[i] != nullptr; i++) {
+
+      if (access(caFiles[i], R_OK) != 0) {
+        continue;
+      }
+
+
+      if (SSL_CTX_load_verify_locations(
+              sslCtx,
+              caFiles[i],
+              nullptr) == 1) {
+
+        return true;
+      }
+    }
+
+
+    /*
+     * 3. 最后使用 OpenSSL 默认路径
+     *
+     * 兼容 Linux
+     */
+    return SSL_CTX_set_default_verify_paths(sslCtx) == 1;
+  }
+
 };
 typedef std::unique_ptr<BIO, bio_deleter> bio_t;
 struct p12_deleter {
@@ -275,15 +371,26 @@ bool OpenSSLTLSContext::addP12CredentialFile(const std::string& p12file)
 
 bool OpenSSLTLSContext::addSystemTrustedCACerts()
 {
-  if (SSL_CTX_set_default_verify_paths(sslCtx_) != 1) {
+  // if (SSL_CTX_set_default_verify_paths(sslCtx_) != 1) {
+  //   A2_LOG_INFO(fmt(MSG_LOADING_SYSTEM_TRUSTED_CA_CERTS_FAILED,
+  //                   ERR_error_string(ERR_get_error(), nullptr)));
+  //   return false;
+  // }
+  // else {
+  //   A2_LOG_INFO("System trusted CA certificates were successfully added.");
+  //   return true;
+  // }
+
+
+  if (!loadSystemTrustedCACerts(sslCtx_)) {
     A2_LOG_INFO(fmt(MSG_LOADING_SYSTEM_TRUSTED_CA_CERTS_FAILED,
                     ERR_error_string(ERR_get_error(), nullptr)));
+
     return false;
   }
-  else {
-    A2_LOG_INFO("System trusted CA certificates were successfully added.");
-    return true;
-  }
+
+  A2_LOG_INFO("System trusted CA certificates were successfully added.");
+  return true;
 }
 
 bool OpenSSLTLSContext::addTrustedCACertFile(const std::string& certfile)
@@ -291,6 +398,11 @@ bool OpenSSLTLSContext::addTrustedCACertFile(const std::string& certfile)
   if (SSL_CTX_load_verify_locations(sslCtx_, certfile.c_str(), nullptr) != 1) {
     A2_LOG_ERROR(fmt(MSG_LOADING_TRUSTED_CA_CERT_FAILED, certfile.c_str(),
                      ERR_error_string(ERR_get_error(), nullptr)));
+
+
+    //新增log
+    A2_LOG_INFO(fmt("Using CA certificate file: %s",
+                caFiles[i]));
     return false;
   }
   else {
