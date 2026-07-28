@@ -14,10 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [macos-14, macos-13]
-        os: [macos-13]
-        # arch: [amd64, arm64]
-        arch: [amd64]
+        os: [macos-14, macos-13]
+        # os: [macos-13]
+        arch: [amd64, arm64]
+        # arch: [amd64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
@@ -37,7 +37,6 @@ jobs:
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
         if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        # if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
@@ -49,7 +48,6 @@ jobs:
           tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
         if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        # if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -81,64 +79,64 @@ jobs:
 
 
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set Build Date
-        run: echo "ReleaseVersion=`date +%Y%m%d`" >> $GITHUB_ENV
-      - name: Retrieve aria2c-macos-amd64
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-macos-amd64
-          path: ./artifact
-      - name: Retrieve aria2c-macos-arm64
-        uses: actions/download-artifact@master
-        with:
-          name: aria2c-macos-arm64
-          path: ./artifact
-      # - name: Retrieve aria2c-linux-amd64
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-amd64
-      #     path: ./artifact
-      # - name: Retrieve aria2c-linux-arm64
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-arm64
-      #     path: ./artifact
-      # - name: Retrieve aria2c-linux-ppc64le
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-ppc64le
-      #     path: ./artifact
-      # - name: Retrieve aria2c-linux-s390x
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-s390x
-      #     path: ./artifact
-      # - name: Retrieve aria2c-linux-386
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-386
-      #     path: ./artifact
-      # - name: Retrieve aria2c-linux-arm
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     name: aria2c-linux-arm
-      #     path: ./artifact
-      # - name: SSH 连接到 Actions
-      #   uses: P3TERX/ssh2actions@main
-      #   env:
-      #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      #     TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      - name: release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: '${{ secrets.GITHUB_TOKEN }}'
-          prerelease: false
-          # automatic_release_tag: ${{ env.ReleaseVersion }}
-          # title: ${{ env.ReleaseVersion }}
-          automatic_release_tag: "v1.37.0"
-          title: "v1.37.0 osx版本构建"
-          files: ./artifact/*
+  # release:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Set Build Date
+  #       run: echo "ReleaseVersion=`date +%Y%m%d`" >> $GITHUB_ENV
+  #     - name: Retrieve aria2c-macos-amd64
+  #       uses: actions/download-artifact@master
+  #       with:
+  #         name: aria2c-macos-amd64
+  #         path: ./artifact
+  #     - name: Retrieve aria2c-macos-arm64
+  #       uses: actions/download-artifact@master
+  #       with:
+  #         name: aria2c-macos-arm64
+  #         path: ./artifact
+  #     # - name: Retrieve aria2c-linux-amd64
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-amd64
+  #     #     path: ./artifact
+  #     # - name: Retrieve aria2c-linux-arm64
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-arm64
+  #     #     path: ./artifact
+  #     # - name: Retrieve aria2c-linux-ppc64le
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-ppc64le
+  #     #     path: ./artifact
+  #     # - name: Retrieve aria2c-linux-s390x
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-s390x
+  #     #     path: ./artifact
+  #     # - name: Retrieve aria2c-linux-386
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-386
+  #     #     path: ./artifact
+  #     # - name: Retrieve aria2c-linux-arm
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: aria2c-linux-arm
+  #     #     path: ./artifact
+  #     # - name: SSH 连接到 Actions
+  #     #   uses: P3TERX/ssh2actions@main
+  #     #   env:
+  #     #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  #     #     TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  #     - name: release
+  #       uses: marvinpinto/action-automatic-releases@latest
+  #       with:
+  #         repo_token: '${{ secrets.GITHUB_TOKEN }}'
+  #         prerelease: false
+  #         # automatic_release_tag: ${{ env.ReleaseVersion }}
+  #         # title: ${{ env.ReleaseVersion }}
+  #         automatic_release_tag: "v1.37.0"
+  #         title: "v1.37.0 osx版本构建"
+  #         files: ./artifact/*
