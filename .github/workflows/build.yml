@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # os: [macos-14, macos-13]
-        os: [macos-14]
+        os: [macos-13]
         # arch: [amd64, arm64]
         arch: [amd64]
     steps:
@@ -36,8 +36,8 @@ jobs:
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
@@ -48,8 +48,8 @@ jobs:
           mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
           tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
-        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-14' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -60,6 +60,18 @@ jobs:
         with:
           name: aria2c-linux-${{ matrix.arch }}
           path: ./artifact/
+
+      - name: Publish GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          replacesArtifacts: true
+          prerelease: false
+          draft: false
+          artifacts: "./artifact/aria2c*" 
+          tag: "v1.37.0"
+          token: ${{ secrets.GITHUB_TOKEN }}   
+
       # - name: SSH 连接到 Actions
       #   uses: tofuliang/ssh2actions@main
       #   if: ${{ failure() }}
