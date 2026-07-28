@@ -8,6 +8,9 @@ on:
   watch:
     types: [started]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     # if: github.event.repository.owner.id == github.event.sender.id
