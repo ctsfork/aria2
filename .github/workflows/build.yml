@@ -35,9 +35,7 @@ jobs:
         run: |
           sudo apt install -y screen
           mkdir ./artifact
-          echo "  arch=${{ matrix.arch == 'x64' && 'amd64' || matrix.arch }}  "
           arch=${{ matrix.os == 'ubuntu-24.04' && 'amd64' || 'arm64' }}
-          echo "  screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-$arch.tar aria2c";"
           screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-${{ matrix.os == 'ubuntu-24.04' && 'x86_64' || 'arm64' }}.tar aria2c";
           HOST=$(ip -4 address|grep docker|grep -oE '([0-9]+\.){3}[0-9]+'|grep -v 255)
           docker run --rm --privileged tonistiigi/binfmt:latest --install all
@@ -51,12 +49,11 @@ jobs:
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
           git checkout build
-          echo "  (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.arch == 'x64' && 'x86_64' || matrix.arch }} V=s) "
           (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.os == 'macos-15-intel' && 'x86_64' || 'arm64' }} V=s)
           strip /Users/runner/work/aria2/build/aria2-def/bin/aria2c
           mkdir ./artifact/
           mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
-          echo "  tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c  "
+          # tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c  
           tar cf ./artifact/aria2c-macos-${{ matrix.os == 'macos-15-intel' && 'x86_64' || 'arm64' }}.tar aria2c
       - name: upload macOS aria2c
         # if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
