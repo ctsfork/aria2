@@ -67,8 +67,8 @@ jobs:
         run: |
           set +e
           which aria2
+          which cp
           mkdir -p ./artifact/
-          cp "$(which aria2)" ./artifact/
           set -e
 
 
