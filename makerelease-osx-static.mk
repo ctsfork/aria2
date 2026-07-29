@@ -137,8 +137,8 @@ gmp_confflags = --disable-cxx --enable-assembly --with-pic --enable-fat
 gmp_cflags=$(CFLAGS)
 gmp_cxxflags=$(CXXFLAGS)
 
-libuv_version = v1.9.1
-libuv_hash = e83953782c916d7822ef0b94e8115ce5756fab5300cca173f0de5f5b0e0ae928
+libuv_version = v1.52.1
+libuv_hash = 66d511b9e6e334c0e62279eb234fbfb2b3110b1479c09b95b44c7afca8cff9e7
 libuv_url = https://dist.libuv.org/dist/$(libuv_version)/libuv-$(libuv_version).tar.gz
 libuv_confflags = --disable-silent-rules
 
