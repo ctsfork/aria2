@@ -4,6 +4,7 @@
 2. 修改makerelease-osx-static.mk文件：移除--with-ca-bundle参数：禁用指定证书路径，让程序自行查找证书。
 3. 修改makerelease-osx-static.mk文件：添加--without-python参数：libxml2不使用Python就不会被本机 Miniconda 环境影响
 4. 构建了OSX arm64 x86-x64，Linux arm64 x86-x64版本
+5. 将依赖库升级到最新
 
 
 

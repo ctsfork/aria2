@@ -16,9 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [macos-14, macos-13, ubuntu-latest]
-        # os: [macos-14, macos-13 ]
-        os: [ macos-15, macos-15-intel ]
+        os: [ macos-15, macos-15-intel, ubuntu-latest ]
         arch: [x64, arm64]
     steps:
       - name: Check Out Branch
@@ -38,8 +36,7 @@ jobs:
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-15-intel-' && matrix.arch == 'x64') || (matrix.os == 'macos-15-' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
@@ -50,8 +47,7 @@ jobs:
           mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
           tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
-        # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-15-intel-' && matrix.arch == 'x64') || (matrix.os == 'macos-15-' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -78,16 +74,6 @@ jobs:
           name: aria2c-install-amd64
           path: /usr/local/Cellar/aria2/
 
-      # - name: 查询aria2
-      #   run: |
-      #     set +e
-      #     which aria2
-      #     which cp
-      #     mkdir -p ./artifact/
-      #     ls /opt/homebrew/Cellar/aria2/
-      #     echo " "
-      #     find /usr /opt /usr/local -type f \( -name aria2 -o -name aria2c \) 
-      #     set -e
 
 
       - name: Publish GitHub Release

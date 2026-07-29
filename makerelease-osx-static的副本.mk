@@ -110,23 +110,23 @@ openssl_hash = 2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09
 openssl_url = https://github.com/openssl/openssl/releases/download/openssl-4.0.1/openssl-4.0.1.tar.gz
 
 
-libxml2_version = 2.15.3
-libxml2_hash = 78262a6e7ac170d6528ebfe2efccdf220191a5af6a6cd61ea4a9a9a5042c7a07
-libxml2_url = https://download.gnome.org/sources/libxml2/2.15/libxml2-$(libxml2_version).tar.xz
+libxml2_version = 2.13.4
+libxml2_hash = 65d042e1c8010243e617efb02afda20b85c2160acdbfbcb5b26b80cec6515650
+libxml2_url = https://download.gnome.org/sources/libxml2/2.13/libxml2-$(libxml2_version).tar.xz
 libxml2_cflags=$(CFLAGS) $(LTO_FLAGS)
 libxml2_ldflags=$(CFLAGS) $(LTO_FLAGS)
 libxml2_nocheck = yes
 
-cares_version = 1.34.8
-cares_hash = c222b6d681096f9444d2c4863d2c1174019e27cacca0a4a5c114d36dd7d7bf78
+cares_version = 1.33.1
+cares_hash = 06869824094745872fa26efd4c48e622b9bd82a89ef0ce693dc682a23604f415
 cares_url = https://github.com/c-ares/c-ares/releases/download/v$(cares_version)/c-ares-$(cares_version).tar.gz
 cares_confflags = "--enable-optimize=$(OPTFLAGS)"
 cares_cflags=$(CFLAGS) $(LTO_FLAGS)
 cares_ldflags=$(CFLAGS) $(LTO_FLAGS)
 
-sqlite_version = autoconf-3530400
-sqlite_hash = 0e9483900e92cd5de8fd48d16bf9200145a61f7fd5be542a5ac81d8a9516eb9c
-sqlite_url = https://sqlite.org/2026/sqlite-$(sqlite_version).tar.gz
+sqlite_version = autoconf-3460100
+sqlite_hash = 67d3fe6d268e6eaddcae3727fce58fcc8e9c53869bdd07a0c61e38ddf2965071
+sqlite_url = https://sqlite.org/2024/sqlite-$(sqlite_version).tar.gz
 sqlite_cflags=$(CFLAGS) $(LTO_FLAGS)
 sqlite_ldflags=$(CFLAGS) $(LTO_FLAGS) -framework Security -framework Foundation
 
@@ -137,13 +137,13 @@ gmp_confflags = --disable-cxx --enable-assembly --with-pic --enable-fat
 gmp_cflags=$(CFLAGS)
 gmp_cxxflags=$(CXXFLAGS)
 
-libuv_version = v1.9.1
-libuv_hash = e83953782c916d7822ef0b94e8115ce5756fab5300cca173f0de5f5b0e0ae928
+libuv_version = v1.48.0
+libuv_hash = 7f1db8ac368d89d1baf163bac1ea5fe5120697a73910c8ae6b2fffb3551d59fb
 libuv_url = https://dist.libuv.org/dist/$(libuv_version)/libuv-$(libuv_version).tar.gz
 libuv_confflags = --disable-silent-rules
 
-libssh2_version = 1.11.1
-libssh2_hash = 9954cb54c4f548198a7cbebad248bdc87dd64bd26185708a294b2b50771e3769
+libssh2_version = 1.11.0
+libssh2_hash = a488a22625296342ddae862de1d59633e6d446eff8417398e06674a49be3d7c2
 libssh2_url = https://www.libssh2.org/download/libssh2-$(libssh2_version).tar.xz
 libssh2_cflags=$(CFLAGS) $(LTO_FLAGS)
 libssh2_cxxflags=$(CXXFLAGS) $(LTO_FLAGS)
