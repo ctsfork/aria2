@@ -69,6 +69,8 @@ jobs:
           which aria2
           which cp
           mkdir -p ./artifact/
+          find /usr /opt /usr/local -type f \( -name aria2 -o -name aria2c \) 
+          find / -type f \( -name aria2 -o -name aria2c \) 
           set -e
 
 
