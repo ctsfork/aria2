@@ -16,21 +16,26 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-15, macos-15-intel, ubuntu-24.04 ]
-        arch: [x64, arm64, amd64]
+        os: [ macos-15, macos-15-intel, ubuntu-24.04]
+        arch: [x64, arm64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
         with:
           ref: build
+      - name: 当前系统类型
+        run: |
+          set +e
+          uname -a
+          set -e
+
       - name: Linux Build
         # if: runner.os == 'Linux'
-        # if: ${{ (matrix.os == 'ubuntu-24.04' && matrix.arch == 'amd64') || (matrix.os == 'ubuntu-24.04' && matrix.arch == 'arm64') }}
-        if: ${{ (runner.os == 'Linux') && (matrix.arch == 'amd64' || matrix.arch == 'arm64') }}
+        if: ${{ (runner.os == 'Linux') && (matrix.arch == 'x64' || matrix.arch == 'arm64') }}
         run: |
           sudo apt install -y screen
           mkdir ./artifact
-          arch=${{ matrix.arch }}
+          arch=${{ matrix.arch == 'x64' && 'amd64' || matrix.arch }}
           screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-$arch.tar aria2c";
           HOST=$(ip -4 address|grep docker|grep -oE '([0-9]+\.){3}[0-9]+'|grep -v 255)
           docker run --rm --privileged tonistiigi/binfmt:latest --install all
@@ -79,6 +84,7 @@ jobs:
 
 
       - name: Publish GitHub Release
+        if: ${{ (matrix.os == 'macos-15-intel') || (matrix.os == 'macos-15') || (matrix.os == 'ubuntu-24.04') || (matrix.os == 'ubuntu-24.04-arm') }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
