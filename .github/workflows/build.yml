@@ -2,9 +2,9 @@ name: Build Binary
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - build
+  # push:
+  #   branches:
+  #     - build
   watch:
     types: [started]
 
