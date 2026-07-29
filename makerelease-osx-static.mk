@@ -105,9 +105,9 @@ zlib_url = https://zlib.net/fossils/zlib-$(zlib_version).tar.gz
 # openssl_hash = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
 # openssl_url = https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz
 
-openssl_version = 4.0.1
-openssl_hash = 2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09
-openssl_url = https://github.com/openssl/openssl/releases/download/openssl-4.0.1/openssl-4.0.1.tar.gz
+openssl_version = 3.6.3
+openssl_hash = 243a86649cf6f23eeb6a2ff2456e09e5d77dd9018a54d3d96b0c6bdd6ba6c7f1
+openssl_url = https://github.com/openssl/openssl/releases/download/openssl-3.6.3/openssl-3.6.3.tar.gz
 
 
 libxml2_version = 2.15.3

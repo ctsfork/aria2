@@ -17,14 +17,16 @@ jobs:
     strategy:
       matrix:
         os: [ macos-15, macos-15-intel, ubuntu-24.04 ]
-        arch: [x64, arm64]
+        arch: [x64, arm64, amd64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
         with:
           ref: build
       - name: Linux Build
-        if: runner.os == 'Linux'
+        # if: runner.os == 'Linux'
+        # if: ${{ (matrix.os == 'ubuntu-24.04' && matrix.arch == 'amd64') || (matrix.os == 'ubuntu-24.04' && matrix.arch == 'arm64') }}
+        if: ${{ (runner.os == 'Linux') && (matrix.arch == 'amd64' || matrix.arch == 'arm64') }}
         run: |
           sudo apt install -y screen
           mkdir ./artifact
