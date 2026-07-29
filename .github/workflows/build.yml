@@ -39,7 +39,7 @@ jobs:
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
         # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel-' && matrix.arch == 'x64') || (matrix.os == 'macos-15-' && matrix.arch == 'arm64') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
@@ -51,7 +51,7 @@ jobs:
           tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
       - name: upload macOS aria2c
         # if: ${{ (matrix.os == 'macos-13' && matrix.arch == 'amd64') || (matrix.os == 'macos-14' && matrix.arch == 'arm64') }}
-        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel-' && matrix.arch == 'x64') || (matrix.os == 'macos-15-' && matrix.arch == 'arm64') }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-macos-${{ matrix.arch }}
@@ -67,6 +67,7 @@ jobs:
         run: |
           set +e
           which aria2
+          mkdir -p ./artifact/
           cp "$(which aria2)" ./artifact/
           set -e
 
