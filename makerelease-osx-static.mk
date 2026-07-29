@@ -101,14 +101,9 @@ zlib_hash = bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
 zlib_url = https://zlib.net/fossils/zlib-$(zlib_version).tar.gz
 
 
-# openssl_version = 1.1.1w
-# openssl_hash = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
-# openssl_url = https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz
-
-openssl_version = 3.6.3
-openssl_hash = 243a86649cf6f23eeb6a2ff2456e09e5d77dd9018a54d3d96b0c6bdd6ba6c7f1
-openssl_url = https://github.com/openssl/openssl/releases/download/openssl-3.6.3/openssl-3.6.3.tar.gz
-
+openssl_version = 1.1.1w
+openssl_hash = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+openssl_url = https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz
 
 libxml2_version = 2.15.3
 libxml2_hash = 78262a6e7ac170d6528ebfe2efccdf220191a5af6a6cd61ea4a9a9a5042c7a07
