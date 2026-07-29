@@ -16,8 +16,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-15, macos-15-intel, ubuntu-24.04]
-        arch: [x64, arm64]
+        os: [ macos-15, macos-15-intel, ubuntu-24.04, ubuntu-22.04-arm]
+        # arch: [x64, arm64]
     steps:
       - name: Check Out Branch
         uses: actions/checkout@master
@@ -30,52 +30,64 @@ jobs:
           set -e
 
       - name: Linux Build
-        # if: runner.os == 'Linux'
-        if: ${{ (runner.os == 'Linux') && (matrix.arch == 'x64' || matrix.arch == 'arm64') }}
+        if: runner.os == 'Linux'
+        # if: ${{ (runner.os == 'Linux') && (matrix.arch == 'x64' || matrix.arch == 'arm64') }}
         run: |
           sudo apt install -y screen
           mkdir ./artifact
-          arch=${{ matrix.arch == 'x64' && 'amd64' || matrix.arch }}
-          screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-$arch.tar aria2c";
+          echo "  arch=${{ matrix.arch == 'x64' && 'amd64' || matrix.arch }}  "
+          arch=${{ matrix.os == 'ubuntu-24.04' && 'amd64' || 'arm64' }}
+          echo "  screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-$arch.tar aria2c";"
+          screen -dmS "pack_$arch" bash -c "nc -l 9999 > aria2c && chmod a+x aria2c && tar cvf $(pwd)/artifact/aria2c-linux-${{ matrix.os == 'ubuntu-24.04' && 'x86_64' || 'arm64' }}.tar aria2c";
           HOST=$(ip -4 address|grep docker|grep -oE '([0-9]+\.){3}[0-9]+'|grep -v 255)
           docker run --rm --privileged tonistiigi/binfmt:latest --install all
           docker buildx create --use --name=multibulider --driver docker-container --driver-opt image=moby/buildkit:master
           docker buildx use multibulider
           docker buildx build --build-arg HOST=${HOST} --platform linux/${arch} -t aria2 .
       - name: macOS Build
-        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel') || (matrix.os == 'macos-15') }}
         run: |
           brew install autoconf automake pkg-config libtool;
           # brew unlink gettext || true
           git checkout build
-          (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.arch == 'x64' && 'x86_64' || matrix.arch }} V=s)
+          echo "  (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.arch == 'x64' && 'x86_64' || matrix.arch }} V=s) "
+          (cd /Users/runner/work/aria2;mkdir build;cd build; ln -s ../aria2/makerelease-osx-static.mk ./Makefile; make ARCH=${{ matrix.os == 'macos-15-intel' && 'x86_64' || 'arm64' }} V=s)
           strip /Users/runner/work/aria2/build/aria2-def/bin/aria2c
           mkdir ./artifact/
           mv /Users/runner/work/aria2/build/aria2-def/bin/aria2c ./aria2c
-          tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c
+          echo "  tar cf ./artifact/aria2c-macos-${{ matrix.arch }}.tar aria2c  "
+          tar cf ./artifact/aria2c-macos-${{ matrix.os == 'macos-15-intel' && 'x86_64' || 'arm64' }}.tar aria2c
       - name: upload macOS aria2c
-        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        # if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64') || (matrix.os == 'macos-15' && matrix.arch == 'arm64') }}
+        if: ${{ (matrix.os == 'macos-15-intel') || (matrix.os == 'macos-15') }}
         uses: actions/upload-artifact@master
         with:
-          name: aria2c-macos-${{ matrix.arch }}
+          # name: aria2c-macos-${{ matrix.arch }}
+          name: aria2c-macos-${{ matrix.os == 'macos-15-intel' && 'x86_64' || 'arm64' }}
           path: ./artifact/
       - name: upload Linux aria2c
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@master
         with:
-          name: aria2c-linux-${{ matrix.arch }}
+          # name: aria2c-linux-${{ matrix.arch }}
+          name: aria2c-linux-${{ matrix.os == 'ubuntu-24.04' && 'x86_64' || 'arm64' }}
           path: ./artifact/
 
 
+
+
       - name: upload macOS-arm64 install aria2c
-        if: ${{ (matrix.os == 'macos-15' && matrix.arch == 'arm64')  }}
+        # if: ${{ (matrix.os == 'macos-15' && matrix.arch == 'arm64')  }}
+        if: ${{ ( matrix.os == 'macos-15' )  }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-install-arm64
           path: /opt/homebrew/Cellar/aria2/
 
       - name: upload macOS-intel install aria2c
-        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64')  }}
+        # if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64')  }}
+        if: ${{ ( matrix.os == 'macos-15-intel' )  }}
         uses: actions/upload-artifact@master
         with:
           name: aria2c-install-amd64
