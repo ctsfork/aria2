@@ -63,15 +63,31 @@ jobs:
           name: aria2c-linux-${{ matrix.arch }}
           path: ./artifact/
 
-      - name: 查询aria2
-        run: |
-          set +e
-          which aria2
-          which cp
-          mkdir -p ./artifact/
-          find /usr /opt /usr/local -type f \( -name aria2 -o -name aria2c \) 
-          find / -type f \( -name aria2 -o -name aria2c \) 
-          set -e
+
+      - name: upload macOS-arm64 install aria2c
+        if: ${{ (matrix.os == 'macos-15' && matrix.arch == 'arm64')  }}
+        uses: actions/upload-artifact@master
+        with:
+          name: aria2c-install-arm64
+          path: /opt/homebrew/Cellar/aria2/
+
+      - name: upload macOS-intel install aria2c
+        if: ${{ (matrix.os == 'macos-15-intel' && matrix.arch == 'x64')  }}
+        uses: actions/upload-artifact@master
+        with:
+          name: aria2c-install-amd64
+          path: /usr/local/Cellar/aria2/
+
+      # - name: 查询aria2
+      #   run: |
+      #     set +e
+      #     which aria2
+      #     which cp
+      #     mkdir -p ./artifact/
+      #     ls /opt/homebrew/Cellar/aria2/
+      #     echo " "
+      #     find /usr /opt /usr/local -type f \( -name aria2 -o -name aria2c \) 
+      #     set -e
 
 
       - name: Publish GitHub Release
